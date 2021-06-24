@@ -10,6 +10,7 @@ const userSchema = new Schema(
     name: { type: String },
     email: { type: String, required: true },
     email_verified_at: { type: Date },
+    kyc_verified_at: { type: Date },
     password: { type: String },
     status: { type: Boolean, default: false },
     registerMethod: { type: String },

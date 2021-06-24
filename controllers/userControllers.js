@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const validateRegisterInput = require("../validation/register");
 const validateLoginInput = require("../validation/login");
 const keys = require("../config/keys");
-
+const isEmpty = require("../utils/is-Empty");
 const UserController = (function () {
   const getUserList = async (req, res) => {
     Users.find()
@@ -55,7 +55,9 @@ const UserController = (function () {
                   .then((user) => {
                     return res.status(200).json({ success: true });
                   })
-                  .catch((err) => console.log({ success: false, err: err }));
+                  .catch((err) =>
+                    res.status(400).json({ success: false, err: err })
+                  );
               });
             });
           }
@@ -112,7 +114,9 @@ const UserController = (function () {
                   }
                 );
               })
-              .catch((err) => console.log({ success: false, err: err }));
+              .catch((err) =>
+                res.status(400).json({ success: false, err: err })
+              );
           }
         });
       })
@@ -143,11 +147,47 @@ const UserController = (function () {
         return res.status(400).json({ success: false, error });
       });
   };
+  const updateUser = async (req, res) => {
+    const { verEmail, verKyc, role, status, userEmail } = req.body;
+    Users.findOne({ email: userEmail })
+      .then((user) => {
+        if (!user) {
+          return res
+            .status(400)
+            .send({ success: false, message: "Email not found." });
+        } else {
+          if (verEmail) {
+            if (isEmpty(user.email_verified_at)) {
+              user.email_verified_at = Date.now();
+            }
+          } else {
+            user.email_verified_at = "";
+          }
+          if (verKyc) {
+            if (isEmpty(user.kyc_verified_at)) {
+              user.kyc_verified_at = Date.now();
+            }
+          } else {
+            user.kyc_verified_at = "";
+          }
+          user.role = role ? "admin" : "user";
+          user.status = status;
+          user
+            .save()
+            .then((user) => res.status(400).json({ success: true }))
+            .catch((err) => res.status(400).json({ success: false, err: err }));
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
   return {
     register,
     login,
     getUserList,
     deleteUser,
+    updateUser,
   };
 })();
 module.exports = UserController;
