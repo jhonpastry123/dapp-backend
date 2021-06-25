@@ -6,16 +6,16 @@ const { Schema } = mongoose;
 
 const userSchema = new Schema(
   {
-    id: { type: Schema.Types.ObjectId },
     name: { type: String },
     email: { type: String, required: true },
     email_verified_at: { type: Date },
     kyc_verified_at: { type: Date },
-    password: { type: String },
-    status: { type: Boolean, default: false },
+    status: { type: Boolean, default: true },
     registerMethod: { type: String },
     lastLogin: { type: Date },
     role: { type: String, default: "user" },
+    mobile: { type: String, default: "" },
+    dateOfBirthDay: { type: String, default: "" },
     walletType: { type: String },
     walletAddress: { type: String },
     remember_token: { type: Date },

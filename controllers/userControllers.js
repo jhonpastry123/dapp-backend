@@ -2,6 +2,7 @@ const firebaseAdmin = require("../firebase-admin");
 const firebaseClient = require("../firebase-client");
 
 const Users = require("../models/users");
+const Activity = require("../models/activity");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const validateRegisterInput = require("../validation/register");
@@ -26,13 +27,7 @@ const UserController = (function () {
       return res.status(400).send(errors);
     }
     try {
-      const { username, useremail, password } = req.body;
-      await firebaseAdmin.auth().createUser({
-        email: useremail,
-        emailVerified: false,
-        password: password,
-        displayName: username,
-      });
+      const { username, useremail } = req.body;
       Users.findOne({ email: useremail })
         .then((user) => {
           if (user) {
@@ -43,23 +38,15 @@ const UserController = (function () {
             const newUser = new Users({
               name: username,
               email: useremail,
-              password: password,
             });
-            //   Hash password before saving in database
-            bcrypt.genSalt(10, (err, salt) => {
-              bcrypt.hash(newUser.password, salt, (err, hash) => {
-                if (err) throw err;
-                newUser.password = hash;
-                newUser
-                  .save()
-                  .then((user) => {
-                    return res.status(200).json({ success: true });
-                  })
-                  .catch((err) =>
-                    res.status(400).json({ success: false, err: err })
-                  );
-              });
-            });
+            newUser
+              .save()
+              .then(() => {
+                return res.status(200).json({ success: true });
+              })
+              .catch((err) =>
+                res.status(400).json({ success: false, err: err })
+              );
           }
         })
         .catch((err) => {
@@ -72,11 +59,13 @@ const UserController = (function () {
 
   const login = async (req, res) => {
     const { errors, isValid } = validateLoginInput(req.body);
+
     // Check validation
     if (!isValid) {
       return res.status(400).send(errors);
     }
-    const { useremail, password } = req.body;
+    const { useremail, password, ip, browser, os } = req.body;
+
     // Find user by email
 
     // return res.send(firebaseClient);
@@ -85,6 +74,14 @@ const UserController = (function () {
       .auth()
       .signInWithEmailAndPassword(useremail, password)
       .then((userCredential) => {
+        const {
+          user: { emailVerified, refreshToken },
+        } = userCredential;
+        if (!emailVerified) {
+          return res
+            .status(400)
+            .send({ success: false, message: "Please verify your email." });
+        }
         // Signed in
         Users.findOne({ email: useremail }).then((user) => {
           // Check if user exists
@@ -93,13 +90,39 @@ const UserController = (function () {
               .status(404)
               .send({ success: false, message: "Account not found." });
           } else {
+            const newActivity = new Activity({
+              user_id: user._id,
+              device: os,
+              browser: browser,
+              ip: ip,
+            });
+            newActivity
+              .save()
+              .then()
+              .catch((err) => {
+                return res.status(400).send({
+                  success: false,
+                  message: "Thereis Some Issue",
+                });
+              });
+            if (isEmpty(user.email_verified_at)) {
+              user.email_verified_at = Date.now();
+            }
             user.lastLogin = Date.now();
             user
               .save()
               .then((user) => {
+                if (!user.status) {
+                  return res.status(400).send({
+                    success: false,
+                    message: "Account was not actived.",
+                  });
+                }
                 const payload = {
-                  username: user.email,
+                  useremail: user.email,
+                  userrole: user.role,
                 };
+                console.log(user.role);
                 jwt.sign(
                   payload,
                   keys.secretOrKey,
@@ -110,6 +133,7 @@ const UserController = (function () {
                     res.json({
                       success: true,
                       token: token,
+                      fireToken: refreshToken,
                     });
                   }
                 );
@@ -148,7 +172,7 @@ const UserController = (function () {
       });
   };
   const updateUser = async (req, res) => {
-    const { verEmail, verKyc, role, status, userEmail } = req.body;
+    const { verKyc, role, status, userEmail } = req.body;
     Users.findOne({ email: userEmail })
       .then((user) => {
         if (!user) {
@@ -156,13 +180,6 @@ const UserController = (function () {
             .status(400)
             .send({ success: false, message: "Email not found." });
         } else {
-          if (verEmail) {
-            if (isEmpty(user.email_verified_at)) {
-              user.email_verified_at = Date.now();
-            }
-          } else {
-            user.email_verified_at = "";
-          }
           if (verKyc) {
             if (isEmpty(user.kyc_verified_at)) {
               user.kyc_verified_at = Date.now();
@@ -174,7 +191,7 @@ const UserController = (function () {
           user.status = status;
           user
             .save()
-            .then((user) => res.status(400).json({ success: true }))
+            .then((user) => res.json({ success: true }))
             .catch((err) => res.status(400).json({ success: false, err: err }));
         }
       })
@@ -182,12 +199,17 @@ const UserController = (function () {
         console.log(err);
       });
   };
+  const verifyEmail = async (req, res) => {
+    firebaseClient.auth().currentUser;
+    console.log(object);
+  };
   return {
     register,
     login,
     getUserList,
     deleteUser,
     updateUser,
+    verifyEmail,
   };
 })();
 module.exports = UserController;
