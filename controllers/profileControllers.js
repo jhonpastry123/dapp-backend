@@ -1,6 +1,3 @@
-const firebaseAdmin = require("../firebase-admin");
-const firebaseClient = require("../firebase-client");
-
 const Users = require("../models/users");
 
 const ProfileController = (function () {

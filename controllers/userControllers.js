@@ -105,9 +105,7 @@ const UserController = (function () {
                   message: "Thereis Some Issue",
                 });
               });
-            if (isEmpty(user.email_verified_at)) {
-              user.email_verified_at = Date.now();
-            }
+            user.email_verified_at = emailVerified;
             user.lastLogin = Date.now();
             user
               .save()
@@ -180,13 +178,7 @@ const UserController = (function () {
             .status(400)
             .send({ success: false, message: "Email not found." });
         } else {
-          if (verKyc) {
-            if (isEmpty(user.kyc_verified_at)) {
-              user.kyc_verified_at = Date.now();
-            }
-          } else {
-            user.kyc_verified_at = "";
-          }
+          user.kyc_verified_at = verKyc;
           user.role = role ? "admin" : "user";
           user.status = status;
           user
@@ -199,17 +191,13 @@ const UserController = (function () {
         console.log(err);
       });
   };
-  const verifyEmail = async (req, res) => {
-    firebaseClient.auth().currentUser;
-    console.log(object);
-  };
+
   return {
     register,
     login,
     getUserList,
     deleteUser,
     updateUser,
-    verifyEmail,
   };
 })();
 module.exports = UserController;

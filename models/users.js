@@ -8,8 +8,8 @@ const userSchema = new Schema(
   {
     name: { type: String },
     email: { type: String, required: true },
-    email_verified_at: { type: Date },
-    kyc_verified_at: { type: Date },
+    email_verified_at: { type: Boolean, default: false },
+    kyc_verified_at: { type: Boolean, default: false },
     status: { type: Boolean, default: true },
     registerMethod: { type: String },
     lastLogin: { type: Date },
