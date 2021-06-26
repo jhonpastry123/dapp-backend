@@ -2,7 +2,7 @@ const Users = require("../models/users");
 
 const ProfileController = (function () {
   const getProfile = async (req, res) => {
-    const { email } = req.body;
+    const { email } = req.user;
 
     Users.findOne({ email })
       .then((users) => {
@@ -13,7 +13,8 @@ const ProfileController = (function () {
       });
   };
   const updateProfile = async (req, res) => {
-    const { email, userName, mobile, dob } = req.body;
+    const { userName, mobile, dob } = req.body;
+    const { email } = req.user;
     Users.findOne({ email })
       .then((current) => {
         if (current) {

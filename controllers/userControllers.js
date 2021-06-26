@@ -117,6 +117,7 @@ const UserController = (function () {
                   });
                 }
                 const payload = {
+                  id: user._id,
                   useremail: user.email,
                   userrole: user.role,
                 };
