@@ -121,7 +121,6 @@ const UserController = (function () {
                   useremail: user.email,
                   userrole: user.role,
                 };
-                console.log(user.role);
                 jwt.sign(
                   payload,
                   keys.secretOrKey,
