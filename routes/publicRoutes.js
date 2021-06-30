@@ -26,7 +26,6 @@ const authRoutes = (app) => {
   app.get(
     "/getProfile",
     passport.authenticate("jwt", { session: false }),
-    adminRole,
     ProfileControllers.getProfile
   );
   app.post(
