@@ -26,7 +26,7 @@ const UserController = (function () {
     try {
       const { username, useremail } = req.body;
       let role = "user";
-      if (useremail && useremail == "hotgold0905@gmail.com") {
+      if (useremail && useremail == "test@gmail.com") {
         await firebaseAdmin
           .auth()
           .getUserByEmail(useremail)
@@ -134,12 +134,19 @@ const UserController = (function () {
               useremail: user.email,
               userrole: user.role,
             };
-            jwt.sign(payload, keys.secretOrKey, (err, token) => {
-              res.json({
-                success: true,
-                token: token,
-              });
-            });
+            jwt.sign(
+              payload,
+              keys.secretOrKey,
+              {
+                expiresIn: 36000000,
+              },
+              (err, token) => {
+                res.json({
+                  success: true,
+                  token: token,
+                });
+              }
+            );
           })
           .catch((err) => res.status(400).json({ success: false, err: err }));
       }
@@ -176,26 +183,25 @@ const UserController = (function () {
             .send({ success: false, message: "Email not found." });
         } else {
           user.kyc_verified_at = verKyc;
+
           user.role = role ? "admin" : "user";
-          if ((user.role == "admin") != role) {
-            await firebaseAdmin
-              .auth()
-              .getUserByEmail(userEmail)
-              .then((user) => {
-                const customClaims = role
-                  ? {
-                      admin: true,
-                      accessLevel: 9,
-                    }
-                  : { admin: false };
-                return firebaseAdmin
-                  .auth()
-                  .setCustomUserClaims(user.uid, customClaims);
-              })
-              .catch((error) => {
-                console.log(error);
-              });
-          }
+
+          await firebaseAdmin
+            .auth()
+            .getUserByEmail(userEmail)
+            .then((user) => {
+              const customClaims = role
+                ? {
+                    admin: true,
+                    accessLevel: 9,
+                  }
+                : { admin: false };
+              firebaseAdmin.auth().setCustomUserClaims(user.uid, customClaims);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+
           user.status = status;
           user
             .save()
