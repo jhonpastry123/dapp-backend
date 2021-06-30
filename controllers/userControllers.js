@@ -90,11 +90,11 @@ const UserController = (function () {
 
     // return res.send(firebaseClient);
 
-    // if (!emailVerified) {
-    //   return res
-    //     .status(400)
-    //     .send({ success: false, message: "Please verify your email." });
-    // }
+    if (!emailVerified) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Please verify your email." });
+    }
     // Signed in
     Users.findOne({ email: useremail }).then((user) => {
       // Check if user exists
