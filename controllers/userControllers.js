@@ -22,7 +22,7 @@ const UserController = (function () {
     try {
       const { username, useremail } = req.body;
       let role = "user";
-      if (useremail && useremail == "hotgold0905@gmail.com") {
+      if (useremail && useremail == "test@gmail.com") {
         role = "admin";
       }
       await firebaseAdmin
