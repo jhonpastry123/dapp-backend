@@ -1,7 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const passport = require("passport");
 
 const cors = require("cors");
 require("dotenv").config({ path: "./.env.local" });
@@ -12,11 +11,6 @@ app.use(express.json());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// Passport middleware
-app.use(passport.initialize());
-
-require("./config/passport")(passport);
 
 // routes
 const publicRoutes = require("./routes/publicRoutes");
