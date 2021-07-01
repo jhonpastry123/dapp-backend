@@ -1,11 +1,7 @@
 const firebaseAdmin = require("../firebase-admin");
 const Users = require("../models/users");
 const Activity = require("../models/activity");
-const jwt = require("jsonwebtoken");
 const validateRegisterInput = require("../validation/register");
-const validateLoginInput = require("../validation/login");
-const keys = require("../config/keys");
-const isEmpty = require("../utils/is-Empty");
 const UserController = (function () {
   const getUserList = async (req, res) => {
     Users.find()
@@ -26,26 +22,24 @@ const UserController = (function () {
     try {
       const { username, useremail } = req.body;
       let role = "user";
-      if (useremail && useremail == "test@gmail.com") {
-        await firebaseAdmin
-          .auth()
-          .getUserByEmail(useremail)
-          .then((user) => {
-            const customClaims = {
-              admin: true,
-              accessLevel: 9,
-            };
-            role = "admin";
-
-            firebaseAdmin
-              .auth()
-              .setCustomUserClaims(user.uid, customClaims)
-              .then((result) => {});
-          })
-          .catch((error) => {
-            console.log(error);
-          });
+      if (useremail && useremail == "hotgold0905@gmail.com") {
+        role = "admin";
       }
+      await firebaseAdmin
+        .auth()
+        .getUserByEmail(useremail)
+        .then((user) => {
+          const customClaims = {
+            role,
+          };
+          firebaseAdmin
+            .auth()
+            .setCustomUserClaims(user.uid, customClaims)
+            .then((result) => {});
+        })
+        .catch((error) => {
+          console.log(error);
+        });
 
       Users.findOne({ email: useremail })
         .then((user) => {
@@ -78,23 +72,20 @@ const UserController = (function () {
   };
 
   const login = async (req, res) => {
-    const { errors, isValid } = validateLoginInput(req.body);
-
-    // Check validation
-    if (!isValid) {
-      return res.status(400).send(errors);
-    }
-    const { useremail, ip, browser, os, emailVerified } = req.body;
-
-    // Find user by email
+    const { ip, browser, os, idToken } = req.body;
 
     // return res.send(firebaseClient);
 
-    if (!emailVerified) {
+    const firebaseUser = await firebaseAdmin.auth().verifyIdToken(idToken);
+
+    const useremail = firebaseUser.email;
+
+    if (!firebaseUser.email_verified) {
       return res
         .status(400)
         .send({ success: false, message: "Please verify your email." });
     }
+
     // Signed in
     Users.findOne({ email: useremail }).then((user) => {
       // Check if user exists
@@ -118,7 +109,7 @@ const UserController = (function () {
               message: "Thereis Some Issue",
             });
           });
-        user.email_verified_at = emailVerified;
+        user.email_verified_at = firebaseUser.email_verified;
         user.lastLogin = Date.now();
         user
           .save()
@@ -129,24 +120,14 @@ const UserController = (function () {
                 message: "Account was not actived.",
               });
             }
-            const payload = {
-              id: user._id,
+            const userData = {
               useremail: user.email,
               userrole: user.role,
             };
-            jwt.sign(
-              payload,
-              keys.secretOrKey,
-              {
-                expiresIn: 36000000,
-              },
-              (err, token) => {
-                res.json({
-                  success: true,
-                  token: token,
-                });
-              }
-            );
+            res.json({
+              success: true,
+              userData: userData,
+            });
           })
           .catch((err) => res.status(400).json({ success: false, err: err }));
       }
@@ -192,10 +173,9 @@ const UserController = (function () {
             .then((user) => {
               const customClaims = role
                 ? {
-                    admin: true,
-                    accessLevel: 9,
+                    role: "admin",
                   }
-                : { admin: false };
+                : { role: "user" };
               firebaseAdmin.auth().setCustomUserClaims(user.uid, customClaims);
             })
             .catch((error) => {
