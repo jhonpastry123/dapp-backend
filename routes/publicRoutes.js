@@ -1,5 +1,6 @@
 const UserControllers = require("../controllers/userControllers");
 const ProfileControllers = require("../controllers/profileControllers");
+const KYCControllers = require("../controllers/kycControllers");
 const passport = require("passport");
 const adminRole = require("../config/adminrole");
 const authRoutes = (app) => {
@@ -32,6 +33,21 @@ const authRoutes = (app) => {
     "/updateProfile",
     passport.authenticate("jwt", { session: false }),
     ProfileControllers.updateProfile
+  );
+  app.post(
+    "/saveKYC",
+    // passport.authenticate("jwt", { session: false }),
+    KYCControllers.saveKYC
+  );
+  app.post(
+    "/upload",
+    // passport.authenticate("jwt", { session: false }),
+    KYCControllers.upload
+  );
+  app.post(
+    "/getKYC",
+    // passport.authenticate("jwt", { session: false }),
+    KYCControllers.getKYC
   );
 };
 module.exports = authRoutes;
