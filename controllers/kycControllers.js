@@ -1,14 +1,7 @@
 const firebaseAdmin = require("../firebase-admin");
 const Users = require("../models/users");
 const KYCs = require("../models/kyc");
-const Activity = require("../models/activity");
-const jwt = require("jsonwebtoken");
-const validateRegisterInput = require("../validation/register");
-const validateLoginInput = require("../validation/login");
-const keys = require("../config/keys");
-const isEmpty = require("../utils/is-Empty");
 const UserController = (function () {
-
   const getKYC = async (req, res) => {
     const { data } = req.body;
     KYCs.findOne({ email: data })
@@ -42,7 +35,7 @@ const UserController = (function () {
       radio6,
       professionalcustomer,
       Hand,
-      Passport
+      Passport,
     } = req.body;
 
     try {
@@ -103,7 +96,7 @@ const UserController = (function () {
               radio6: radio6,
               professional_customer: professionalcustomer,
               vectorHand: `vectorHand`,
-              passport: `passport`
+              passport: `passport`,
             });
             newKYCs
               .save()
@@ -128,35 +121,35 @@ const UserController = (function () {
       if (!req.files) {
         res.send({
           status: false,
-          message: 'No file uploaded'
+          message: "No file uploaded",
         });
       } else {
         //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
         let image = req.files.image;
         let name = req.body.name;
-        console.log(name)
+        console.log(name);
         // Use the mv() method to place the file in upload directory(i.e. "uploads")
-        image.mv('./uploads/' + name + '.png');
+        image.mv("./uploads/" + name + ".png");
 
         //send response
         res.send({
           status: true,
-          message: 'File is uploaded',
+          message: "File is uploaded",
           data: {
-            name: name + '.png',
+            name: name + ".png",
             mimetype: image.mimetype,
             size: image.size,
-            success: true
-          }
+            success: true,
+          },
         });
       }
     } catch (err) {
       res.send({
         success: false,
         message: "There is some issue for upload",
-      })
+      });
     }
-  }
+  };
 
   const deleteUser = async (req, res) => {
     const { email } = req.body;
@@ -184,7 +177,7 @@ const UserController = (function () {
     getKYC,
     saveKYC,
     deleteUser,
-    upload
+    upload,
   };
 })();
 module.exports = UserController;
