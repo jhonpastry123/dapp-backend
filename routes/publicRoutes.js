@@ -1,5 +1,6 @@
 const UserControllers = require("../controllers/userControllers");
 const ProfileControllers = require("../controllers/profileControllers");
+const KYCControllers = require("../controllers/kycControllers");
 const adminRole = require("../config/adminrole");
 const authmiddle = require("../config/authmiddle");
 const authRoutes = (app) => {
@@ -10,5 +11,8 @@ const authRoutes = (app) => {
   app.get("/getUserList", adminRole, UserControllers.getUserList);
   app.get("/getProfile", authmiddle, ProfileControllers.getProfile);
   app.post("/updateProfile", authmiddle, ProfileControllers.updateProfile);
+  app.post("/saveKYC", KYCControllers.saveKYC);
+  app.post("/upload", KYCControllers.upload);
+  app.post("/getKYC", KYCControllers.getKYC);
 };
 module.exports = authRoutes;
